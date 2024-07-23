@@ -3,13 +3,13 @@ import pytz
 
 TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 # Create your models here.
-social_platforms = [['Facebook' , 'Facebook' ],
-                    ['Instagram', 'Instagram'],
-                    ['Twitter' , 'Twitter' ],
-                    ['Pinterest' , 'Pinterest' ],
-                    ['LinkedIn' , 'LinkedIn' ],
-                    ['Youtube', 'Youtube'],
-                    ]
+social_platforms = (('Facebook' , 'Facebook' ),
+                    ('Instagram', 'Instagram'),
+                    ('Twitter' , 'Twitter' ),
+                    ('Pinterest' , 'Pinterest' ),
+                    ('LinkedIn' , 'LinkedIn' ),
+                    ('Youtube', 'Youtube'),
+                    )
 class SocialAccount(models.Model):
     user_id = models.CharField(max_length=100,primary_key=True,unique=True, blank=False)
     account_type = models.CharField(max_length=500,unique=True,choices=social_platforms, blank=False)
@@ -19,32 +19,35 @@ class SocialAccount(models.Model):
         return self.account_type
     
 class Schedule(models.Model):
-    post_id = models.CharField(primary_key=True,max_length=50)
+    schedule_id = models.CharField(primary_key=True,max_length=50)
     date_time = models.DateTimeField(unique=True)
     time_zone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
 
     def __str__(self):
-        return self.post_id
+        return self.schedule_id
 
 STATUS_CHOICES = (('Active', 'Active'),
                   ('Inactive','Inactive'),
                   ('Finished','Finished'),)
 
 class Campaign(models.Model):
-    post_id = models.CharField(primary_key=True,max_length=50)
+    campaign_id = models.CharField(primary_key=True,max_length=50)
     name = models.CharField(max_length=100)
     date = models.DateField()
     description = models.CharField(max_length=500)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
     def __str__(self):
-        return self.name
-    
+        return self.campaign_id
+
+
 class UserPost(models.Model):
-    user_id = models.CharField(max_length=100,primary_key=True,unique=True, blank=False)
+    user_id = models.CharField(max_length=100)
     selected_accounts = models.ManyToManyField(SocialAccount)
     description = models.TextField(max_length=500,)
-    attachments = models.FileField()
+
+    attachments = models.ImageField(upload_to="uploads/", null=False , blank=False)
+    
     insta_desc = models.TextField(max_length=500,)
     insta_story = models.BooleanField(default=False)
     insta_first_comment = models.BooleanField(default=False)
@@ -56,5 +59,4 @@ class UserPost(models.Model):
     isScheduled = models.BooleanField(default=False)
 
     schedule = models.ManyToManyField(Schedule)
-    campaign = models.ManyToManyField(Campaign)
-
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, to_field='campaign_id')
