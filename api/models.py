@@ -1,15 +1,15 @@
 from django.db import models
 import pytz
 
-TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+TIMEZONES = list(zip(pytz.all_timezones, pytz.all_timezones))
 # Create your models here.
-social_platforms = (('Facebook' , 'Facebook' ),
+social_platforms = [('Facebook' , 'Facebook' ),
                     ('Instagram', 'Instagram'),
                     ('Twitter' , 'Twitter' ),
                     ('Pinterest' , 'Pinterest' ),
                     ('LinkedIn' , 'LinkedIn' ),
-                    ('Youtube', 'Youtube'),
-                    )
+                    ('Youtube', 'Youtube')]
+
 class SocialAccount(models.Model):
     user_id = models.CharField(max_length=100,primary_key=True,unique=True, blank=False)
     account_type = models.CharField(max_length=500,unique=True,choices=social_platforms, blank=False)
@@ -26,9 +26,9 @@ class Schedule(models.Model):
     def __str__(self):
         return self.schedule_id
 
-STATUS_CHOICES = (('Active', 'Active'),
+STATUS_CHOICES = [('Active', 'Active'),
                   ('Inactive','Inactive'),
-                  ('Finished','Finished'),)
+                  ('Finished','Finished')]
 
 class Campaign(models.Model):
     campaign_id = models.CharField(primary_key=True,max_length=50)
@@ -40,13 +40,16 @@ class Campaign(models.Model):
     def __str__(self):
         return self.campaign_id
 
+def handle_file_upload(instance, filename):
+    path = f'post-attachments/{instance.user_id}/{filename}'
+    return path
 
 class UserPost(models.Model):
     user_id = models.CharField(max_length=100)
     selected_accounts = models.ManyToManyField(SocialAccount)
     description = models.TextField(max_length=500,)
 
-    attachments = models.ImageField(upload_to="uploads/", null=False , blank=False)
+    attachments = models.ImageField(upload_to=handle_file_upload)
     
     insta_desc = models.TextField(max_length=500,)
     insta_story = models.BooleanField(default=False)
@@ -60,3 +63,6 @@ class UserPost(models.Model):
 
     schedule = models.ManyToManyField(Schedule)
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, to_field='campaign_id')
+
+    def __str__(self):
+        return f'{self.user_id} | {self.attachments.name}'
